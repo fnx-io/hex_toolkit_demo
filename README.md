@@ -1,1 +1,7 @@
-# hex_toolkit_demo
+Program je mobilní hra napsaná ve Flutteru a Flame. Jedná se o realtime strategii na hexové mapě.
+
+V programu se pracuje se stavem pomocí třídy StateHolder, která je implementována v souboru state_holder.dart. Tato třída obaluje stavový objekt a rozšiřuje ChangeNotifier, což umožňuje notifikovat posluchače o změnách stavu. V aplikaci je vytvořena instance App, která obsahuje StateHolder pro GameState. GameState je neměnný objekt vytvořený pomocí balíčku freezed, který obsahuje vlastnosti jako body (points) a vybraný hexagon (selectedHex). App poskytuje gettery a settery pro přístup k tomuto stavu a také naslouchá změnám stavu a notifikuje své vlastní posluchače.
+
+Uživatelské rozhraní v hell_widget.dart používá context.watch<App>() k naslouchání změnám v instanci App a aktualizaci UI podle aktuálního stavu. Widget zobrazuje aktuální počet bodů a vybraný hexagon (pokud existuje) ze stavu hry. Když dojde ke změně stavu, UI se automaticky překreslí díky mechanismu Provider, který je použit pro distribuci stavu v aplikaci.
+
+Herní komponenty jako hex_component.dart a selected_hex_component.dart interagují se stavem čtením a zápisem do vlastnosti app.game. Například když uživatel klikne na hexagon v HexComponent, aktualizuje se stav hry nastavením vybraného hexagonu a zvýšením počtu bodů pomocí metody copyWith, která vytvoří novou instanci neměnného stavu. SelectedHexComponent pak čte selectedHex ze stavu a vykresluje bílý obrys kolem vybraného hexagonu. Tento přístup ke správě stavu zajišťuje, že všechny komponenty mají konzistentní pohled na stav aplikace.
