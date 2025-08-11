@@ -48,23 +48,20 @@ class WorldGenerator {
     topology = {};
     humidity = {};
     int start = DateTime.now().millisecondsSinceEpoch;
-    int hit = 0;
-    int miss = 0;
     for (var hex in allHexes()) {
       if (topology[hex] == null) {
-        miss++;
         double elevation = elevationProvider(hex);
         // me and few my friends
         topology[hex] = HexTopologyInfo(hex, elevation);
-        topology[Hex.fromCube(hex.cube + Cube(1, 0, -1))] = HexTopologyInfo(hex, elevation);
-        topology[Hex.fromCube(hex.cube + Cube(0, 1, -1))] = HexTopologyInfo(hex, elevation);
-        topology[Hex.fromCube(hex.cube + Cube(1, -1, 0))] = HexTopologyInfo(hex, elevation);
-      } else {
-        hit++;
+        topology[Hex.fromCube(hex.cube + Cube(1, 0, -1))] ??= HexTopologyInfo(hex, elevation);
+        topology[Hex.fromCube(hex.cube + Cube(0, 1, -1))] ??= HexTopologyInfo(hex, elevation);
+        topology[Hex.fromCube(hex.cube + Cube(-1, 1, 0))] ??= HexTopologyInfo(hex, elevation);
+
+        //topology[Hex.fromCube(hex.cube + Cube(1, -1, 0))] ??= HexTopologyInfo(hex, elevation);
+        //topology[Hex.fromCube(hex.cube + Cube(-1, 0, 1))] ??= HexTopologyInfo(hex, elevation);
+        //topology[Hex.fromCube(hex.cube + Cube(0, -1, 1))] ??= HexTopologyInfo(hex, elevation);
       }
     }
-    print(
-        "World preview generated in ${DateTime.now().millisecondsSinceEpoch - start} ms, $hit hits, $miss misses, ${topology.length} hexes in topology");
     return World(WorldData(topology, humidity));
   }
 

@@ -117,11 +117,10 @@ class WorldPainter extends CustomPainter {
     for (var hex in toDraw()) {
       count++;
       var hexInfo = world.getHexTopology(hex);
-      var hexSize = HEX_SIZE * scale;
-
-      final paint = Paint()..color = ColorFactory.getHexColor(hexInfo.elevation);
-      var vrts = hex.vertices(hexSize, padding: 0.6).map(asOffset).toList();
-      canvas.drawVertices(Vertices(VertexMode.triangleFan, vrts), BlendMode.plus, paint);
+      final paint = Paint()
+        ..color = ColorFactory.getHexColor(hexInfo.elevation)
+        ..isAntiAlias = false;
+      _drawHex(canvas, hex, hexSize, paint);
     }
     for (var hex in toDraw()) {
       var cpaint = Paint()..color = Colors.blue.shade400;
@@ -284,5 +283,16 @@ class WorldPainter extends CustomPainter {
 
   Offset asOffset(PixelPoint p) {
     return Offset(p.x, p.y);
+  }
+
+  void _drawHex(Canvas canvas, Hex hex, double hexSize, Paint paint) {
+    if (hexSize >= HEX_SIZE) {
+      var vrts = hex.vertices(hexSize, padding: 0.6).map(asOffset).toList();
+      canvas.drawVertices(Vertices(VertexMode.triangleFan, vrts), BlendMode.plus, paint);
+    } else {
+      // draw as circle
+      var center = hex.centerPoint(hexSize);
+      canvas.drawCircle(Offset(center.x, center.y), hexSize - 1, paint);
+    }
   }
 }
