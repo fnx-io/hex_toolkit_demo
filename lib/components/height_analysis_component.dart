@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:hex_toolkit/hex_toolkit.dart';
 import 'package:hex_toolkit_demo/components/color_factory.dart';
-import 'package:hex_toolkit_demo/generator/world_generator.dart';
-import 'package:hex_toolkit_demo/models/demo_settings.dart';
-import 'package:hex_toolkit_demo/world/world.dart';
+import 'package:hex_toolkit_demo/generator/world.dart';
 
 class HeightAnalysisComponent extends StatefulWidget {
-  final DemoSettings settings;
+  final SimplexBasedConfig config;
   final World world;
   final double width;
   final double height;
 
   const HeightAnalysisComponent({
     super.key,
-    required this.settings,
+    required this.config,
     required this.world,
     this.width = 300.0,
     this.height = 150.0,
@@ -42,8 +40,8 @@ class _HeightAnalysisComponentState extends State<HeightAnalysisComponent> {
     final hexes = Hex.zero().spiral(30);
 
     // Calculate the range for each group
-    final double amplitude = widget.settings.heightAmplitude;
-    final double groupSize = (2 * amplitude) / groupingFactor;
+    final double amplitude = widget.config.heightAmplitude;
+    final double groupSize = (2.0 * amplitude) / groupingFactor;
 
     // Count hexagons in each height group
     for (final hex in hexes) {
@@ -76,24 +74,27 @@ class _HeightAnalysisComponentState extends State<HeightAnalysisComponent> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: List.generate(groupingFactor, (index) {
-        // Calculate bar height based on group index (1px to 100px)
-        final barHeight = 1 + ((index + 0.5) / groupingFactor) * widget.height;
+    return Container(
+        padding: EdgeInsets.all(8),
+        color: Colors.black26,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: List.generate(groupingFactor, (index) {
+            // Calculate bar height based on group index (1px to 100px)
+            final barHeight = 1 + ((index + 0.5) / groupingFactor) * widget.height;
 
-        final elevation = ((index + 0.5) * (widget.settings.heightAmplitude * 2) / groupingFactor) - widget.settings.heightAmplitude;
-        final color = ColorFactory.getHexColor(elevation);
+            final elevation = ((index + 0.5) * (widget.config.heightAmplitude * 2) / groupingFactor) - widget.config.heightAmplitude;
+            final color = ColorFactory.getElevationColor(elevation);
 
-        // Calculate bar width based on count
-        double barWidth = (_heightGroups[index] / _sum) * (widget.width - 5);
+            // Calculate bar width based on count
+            double barWidth = (_heightGroups[index] / _sum) * (widget.width - 5);
 
-        return Container(
-          width: barWidth,
-          height: barHeight,
-          color: color,
-        );
-      }),
-    );
+            return Container(
+              width: barWidth,
+              height: barHeight,
+              color: color,
+            );
+          }),
+        ));
   }
 }

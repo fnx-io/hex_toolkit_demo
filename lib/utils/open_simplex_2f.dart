@@ -1,11 +1,40 @@
-// https://github.com/creativecreatorormaybenot/funvas/blob/main/open_simplex_2/lib/src/open_simplex_2f.dart
+// Source: https://github.com/creativecreatorormaybenot/funvas/blob/main/open_simplex_2/lib/src/open_simplex_2f.dart
+
+// BSD 3-Clause License
+//
+// Copyright (c) 2021-2025, creativecreatorormaybenot
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice, this
+// list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution.
+//
+// 3. Neither the name of the copyright holder nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // The implementation in this file is based on KdotJPG's implementation here: https://github.com/KdotJPG/OpenSimplex2/blob/a186b9bb644747c936d7cba748d11f28b1cee66e/java/OpenSimplex2F.java.
 
 import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
-import 'package:hex_toolkit_demo/models/grad.dart';
 
 const _kN2 = 0.01001634121365712;
 const _kSize = 2048;
@@ -52,7 +81,7 @@ class OpenSimplex2F {
   }
 
   final _perm = Int16List(_kSize);
-  final _permGrad2 = List.filled(_kSize, const Grad2(0, 0));
+  final _permGrad2 = List.filled(_kSize, const _Grad2(0, 0));
 
   // Noise evaluators
 
@@ -102,7 +131,7 @@ class OpenSimplex2F {
       if (attn <= 0) continue;
 
       int pxm = (xsb + c.xsv) & _kMask, pym = (ysb + c.ysv) & _kMask;
-      Grad2 grad = _permGrad2[_perm[pxm] ^ pym];
+      _Grad2 grad = _permGrad2[_perm[pxm] ^ pym];
       double extrapolation = grad.dx * dx + grad.dy * dy;
 
       attn *= attn;
@@ -121,7 +150,7 @@ class OpenSimplex2F {
     _LatticePoint2D(0, 1),
   ];
 
-  static final _gradients2d = <Grad2>[];
+  static final _gradients2d = <_Grad2>[];
 
   static var _staticInitialized = false;
 
@@ -131,33 +160,33 @@ class OpenSimplex2F {
   /// no comparable concept to static blocks (from Java) in Dart.
   static void _staticInit() {
     const grad2 = [
-      Grad2(0.130526192220052, 0.99144486137381),
-      Grad2(0.38268343236509, 0.923879532511287),
-      Grad2(0.608761429008721, 0.793353340291235),
-      Grad2(0.793353340291235, 0.608761429008721),
-      Grad2(0.923879532511287, 0.38268343236509),
-      Grad2(0.99144486137381, 0.130526192220051),
-      Grad2(0.99144486137381, -0.130526192220051),
-      Grad2(0.923879532511287, -0.38268343236509),
-      Grad2(0.793353340291235, -0.60876142900872),
-      Grad2(0.608761429008721, -0.793353340291235),
-      Grad2(0.38268343236509, -0.923879532511287),
-      Grad2(0.130526192220052, -0.99144486137381),
-      Grad2(-0.130526192220052, -0.99144486137381),
-      Grad2(-0.38268343236509, -0.923879532511287),
-      Grad2(-0.608761429008721, -0.793353340291235),
-      Grad2(-0.793353340291235, -0.608761429008721),
-      Grad2(-0.923879532511287, -0.38268343236509),
-      Grad2(-0.99144486137381, -0.130526192220052),
-      Grad2(-0.99144486137381, 0.130526192220051),
-      Grad2(-0.923879532511287, 0.38268343236509),
-      Grad2(-0.793353340291235, 0.608761429008721),
-      Grad2(-0.608761429008721, 0.793353340291235),
-      Grad2(-0.38268343236509, 0.923879532511287),
-      Grad2(-0.130526192220052, 0.99144486137381)
+      _Grad2(0.130526192220052, 0.99144486137381),
+      _Grad2(0.38268343236509, 0.923879532511287),
+      _Grad2(0.608761429008721, 0.793353340291235),
+      _Grad2(0.793353340291235, 0.608761429008721),
+      _Grad2(0.923879532511287, 0.38268343236509),
+      _Grad2(0.99144486137381, 0.130526192220051),
+      _Grad2(0.99144486137381, -0.130526192220051),
+      _Grad2(0.923879532511287, -0.38268343236509),
+      _Grad2(0.793353340291235, -0.60876142900872),
+      _Grad2(0.608761429008721, -0.793353340291235),
+      _Grad2(0.38268343236509, -0.923879532511287),
+      _Grad2(0.130526192220052, -0.99144486137381),
+      _Grad2(-0.130526192220052, -0.99144486137381),
+      _Grad2(-0.38268343236509, -0.923879532511287),
+      _Grad2(-0.608761429008721, -0.793353340291235),
+      _Grad2(-0.793353340291235, -0.608761429008721),
+      _Grad2(-0.923879532511287, -0.38268343236509),
+      _Grad2(-0.99144486137381, -0.130526192220052),
+      _Grad2(-0.99144486137381, 0.130526192220051),
+      _Grad2(-0.923879532511287, 0.38268343236509),
+      _Grad2(-0.793353340291235, 0.608761429008721),
+      _Grad2(-0.608761429008721, 0.793353340291235),
+      _Grad2(-0.38268343236509, 0.923879532511287),
+      _Grad2(-0.130526192220052, 0.99144486137381)
     ];
     final grad2Adjusted = [
-      for (final grad in grad2) Grad2(grad.dx / _kN2, grad.dy / _kN2),
+      for (final grad in grad2) _Grad2(grad.dx / _kN2, grad.dy / _kN2),
     ];
     for (int i = 0; i < _kSize; i++) {
       _gradients2d.add(grad2Adjusted[i % grad2.length]);
@@ -172,4 +201,16 @@ class _LatticePoint2D {
 
   final int xsv, ysv;
   final double dx, dy;
+}
+
+/// 2-dimensional gradient.
+class _Grad2 {
+  /// Creates a 2-dimensional gradient from its components.
+  const _Grad2(this.dx, this.dy);
+
+  /// The x component of the gradient.
+  final double dx;
+
+  /// The y component of the gradient.
+  final double dy;
 }

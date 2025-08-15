@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ColorFactory {
-  static Color getHexColor(double elevation) {
+  static Color getElevationColor(double elevation) {
     if (elevation <= 0) return Colors.blue.shade500;
     if (elevation < 1500) return Colors.green.shade400;
     if (elevation > 3500) return Colors.white;

@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hex_toolkit/hex_toolkit.dart';
 import 'package:hex_toolkit_demo/components/height_analysis_component.dart';
+import 'package:hex_toolkit_demo/components/selected_hex_info.dart';
 import 'package:hex_toolkit_demo/components/world_viewer.dart';
-import 'package:hex_toolkit_demo/generator/world_generator.dart';
-import 'package:hex_toolkit_demo/models/demo_settings.dart';
-import 'package:hex_toolkit_demo/world/world.dart';
+import 'package:hex_toolkit_demo/components/zoom_controls.dart';
+import 'package:hex_toolkit_demo/generator/world.dart';
 
 import 'components/menu_component.dart';
 
@@ -24,9 +25,17 @@ class HexToolkitDemo extends StatefulWidget {
 
 class _HexToolkitDemoState extends State<HexToolkitDemo> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  DemoSettings _worldSettings = DemoSettings.defaultSettings();
-  WorldGenerator _worldGenerator = WorldGenerator.fromSettings(DemoSettings.defaultSettings());
-  World _world = WorldGenerator.fromSettings(DemoSettings.defaultSettings()).generateWorldPreview();
+  SimplexBasedConfig _worldConfig = SimplexBasedConfig.defaultConfig();
+  WorldGenerator _worldGenerator = WorldGenerator(config: SimplexBasedConfig.defaultConfig());
+  World _world = WorldGenerator(config: SimplexBasedConfig.defaultConfig()).generateWorldPreview();
+  Hex? _selectedHex;
+
+  // Scale value for the WorldViewer
+  double _scale = 1.0;
+
+  // Min and max scale values
+  final double _minScale = 0.5;
+  final double _maxScale = 5.0;
 
   Timer? _debounceTimer;
 
@@ -34,7 +43,7 @@ class _HexToolkitDemoState extends State<HexToolkitDemo> {
   void initState() {
     super.initState();
     // Generate world asynchronously on init
-    _generateWorldAsync(_worldSettings);
+    _generateWorldAsync(_worldConfig);
   }
 
   @override
@@ -43,28 +52,54 @@ class _HexToolkitDemoState extends State<HexToolkitDemo> {
     super.dispose();
   }
 
-  void _handleSettingsChanged(DemoSettings settings) {
+  void _handleHexSelected(Hex hex) {
     setState(() {
-      _worldSettings = settings;
-      _worldGenerator = WorldGenerator.fromSettings(settings);
+      _selectedHex = hex;
+    });
+  }
+
+  // Handle scale up event (increase by 10%)
+  void _handleScaleUp() {
+    setState(() {
+      _scale = (_scale * 1.1).clamp(_minScale, _maxScale);
+    });
+  }
+
+  // Handle scale down event (decrease by 10%)
+  void _handleScaleDown() {
+    setState(() {
+      _scale = (_scale * 0.9).clamp(_minScale, _maxScale);
+    });
+  }
+
+  void handleScaleChanged(double newScale) {
+    setState(() {
+      _scale = newScale.clamp(_minScale, _maxScale);
+    });
+  }
+
+  void _handleConfigChanged(SimplexBasedConfig config) {
+    setState(() {
+      _worldConfig = config;
+      _worldGenerator = WorldGenerator(config: config);
       _world = _worldGenerator.generateWorldPreview();
     });
 
     // Debounce the world generation
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      _generateWorldAsync(settings);
+      _generateWorldAsync(config);
     });
 
-    print('Settings updated: $_worldSettings');
+    print('Config updated: $_worldConfig');
   }
 
   // Function to generate world asynchronously using compute
-  Future<void> _generateWorldAsync(DemoSettings settings) async {
+  Future<void> _generateWorldAsync(SimplexBasedConfig config) async {
     // Generate world in a separate isolate
     final world = await compute(_generateWorld, _worldGenerator);
-    if (settings != _worldSettings) {
-      // If settings have changed while the world was being generated, ignore the result
+    if (config != _worldConfig) {
+      // If config have changed while the world was being generated, ignore the result
       return;
     }
 
@@ -80,55 +115,71 @@ class _HexToolkitDemoState extends State<HexToolkitDemo> {
     final bool isLargeScreen = MediaQuery.of(context).size.width > 1200;
 
     return Scaffold(
-      key: _scaffoldKey,
-      // Show app bar with hamburger menu only on small screens
-      appBar: isLargeScreen
-          ? null
-          : AppBar(
-              title: const Text('Hex Toolkit Demo'),
-              leading: IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  _scaffoldKey.currentState!.openDrawer();
-                },
+        key: _scaffoldKey,
+        // Show app bar with hamburger menu only on small screens
+        appBar: isLargeScreen
+            ? null
+            : AppBar(
+                title: const Text('Hex Toolkit Demo'),
+                leading: IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    _scaffoldKey.currentState!.openDrawer();
+                  },
+                ),
               ),
-            ),
-      // The drawer that will be shown on small screens
-      drawer: !isLargeScreen
-          ? MenuComponent(
-              onSettingsChanged: _handleSettingsChanged,
-            )
-          : null,
-      body: Stack(
-        children: [
-          // Main content spanning full width
-          Row(
-            children: [
-              // Permanent drawer for large screens
-              if (isLargeScreen)
-                MenuComponent(
-                  permanent: true,
-                  onSettingsChanged: _handleSettingsChanged,
+        // The drawer that will be shown on small screens
+        drawer: !isLargeScreen ? MenuComponent(onConfigChanged: _handleConfigChanged) : null,
+        body: Row(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Permanent drawer for large screens
+            if (isLargeScreen) MenuComponent(permanent: true, onConfigChanged: _handleConfigChanged),
+            Expanded(
+                child: Stack(
+              children: [
+                // Main content spanning full width
+                Expanded(
+                  child: WorldViewer(
+                    config: _worldConfig,
+                    world: _world,
+                    selectedHex: _selectedHex,
+                    onHexSelected: _handleHexSelected,
+                    onScaleChanged: handleScaleChanged,
+                    currentScale: _scale,
+                  ),
                 ),
-              // Main content area
-              Expanded(child: WorldViewer(settings: _worldSettings, world: _world)),
-            ],
-          ),
+                // SizedBox in the bottom right corner
+                Positioned(
+                  right: 10,
+                  bottom: 10,
+                  child: HeightAnalysisComponent(
+                    config: _worldConfig,
+                    world: _world,
+                  ),
+                ),
 
-          // SizedBox in the bottom right corner
-          Positioned(
-              right: 10,
-              bottom: 10,
-              child: Container(
-                padding: EdgeInsets.all(8),
-                color: Colors.black26,
-                child: HeightAnalysisComponent(
-                  settings: _worldSettings,
-                  world: _world!,
-                ),
-              )),
-        ],
-      ),
-    );
+                // Zoom controls in the bottom left corner
+                Positioned(
+                    left: 10,
+                    bottom: 10,
+                    child: ZoomControls(
+                      onScaleUp: _handleScaleUp,
+                      onScaleDown: _handleScaleDown,
+                    )),
+
+                // Hex info in the top right corner
+                Positioned(
+                    right: 10,
+                    top: 10,
+                    child: SelectedHexInfo(
+                      selectedHex: _selectedHex,
+                      world: _world,
+                    )),
+              ],
+            ))
+          ],
+        ));
   }
 }

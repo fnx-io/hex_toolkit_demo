@@ -1,18 +1,18 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:hex_toolkit_demo/generator/world.dart';
 
-import '../models/demo_settings.dart';
 import '../utils/seed_generator.dart';
 
 class MenuComponent extends StatefulWidget {
   final bool permanent;
-  final Function(DemoSettings) onSettingsChanged;
+  final Function(SimplexBasedConfig) onConfigChanged;
 
   const MenuComponent({
     Key? key,
     this.permanent = false,
-    required this.onSettingsChanged,
+    required this.onConfigChanged,
   }) : super(key: key);
 
   @override
@@ -20,7 +20,7 @@ class MenuComponent extends StatefulWidget {
 }
 
 class _MenuComponentState extends State<MenuComponent> {
-  // Current settings values
+  // Current config values
   late double _primaryElevationFrequency;
   late double _secondaryElevationFrequency;
   late double _tertiaryElevationFrequency;
@@ -32,26 +32,30 @@ class _MenuComponentState extends State<MenuComponent> {
 
   late double _heightAmplitude;
 
+  late double _riverTrashold; // Threshold for river formation
+
   late String _seed; // Seed for noise generators
   final TextEditingController _seedController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Initialize with default settings
-    final defaultSettings = DemoSettings.defaultSettings();
-    _primaryElevationFrequency = defaultSettings.primaryElevationFrequency;
-    _secondaryElevationFrequency = defaultSettings.secondaryElevationFrequency;
-    _tertiaryElevationFrequency = defaultSettings.tertiaryElevationFrequency;
-    _humidityFrequency = defaultSettings.humidityFrequency;
+    // Initialize with default config
+    final defaultConfig = SimplexBasedConfig.defaultConfig();
+    _primaryElevationFrequency = defaultConfig.primaryElevationFrequency;
+    _secondaryElevationFrequency = defaultConfig.secondaryElevationFrequency;
+    _tertiaryElevationFrequency = defaultConfig.tertiaryElevationFrequency;
+    _humidityFrequency = defaultConfig.humidityFrequency;
 
-    _primaryElevationWeight = defaultSettings.primaryElevationWeight;
-    _secondaryElevationWeight = defaultSettings.secondaryElevationWeight;
-    _tertiaryElevationWeight = defaultSettings.tertiaryElevationWeight;
+    _primaryElevationWeight = defaultConfig.primaryElevationWeight;
+    _secondaryElevationWeight = defaultConfig.secondaryElevationWeight;
+    _tertiaryElevationWeight = defaultConfig.tertiaryElevationWeight;
 
-    _heightAmplitude = defaultSettings.heightAmplitude;
+    _heightAmplitude = defaultConfig.heightAmplitude;
 
-    _seed = defaultSettings.seed;
+    _riverTrashold = defaultConfig.riverTrashold;
+
+    _seed = defaultConfig.seed;
     _seedController.text = _seed;
   }
 
@@ -61,9 +65,9 @@ class _MenuComponentState extends State<MenuComponent> {
     super.dispose();
   }
 
-  // Update settings and notify parent
-  void _updateSettings() {
-    final settings = DemoSettings(
+  // Update config and notify parent
+  void _updateConfig() {
+    final config = SimplexBasedConfig(
       primaryElevationFrequency: _primaryElevationFrequency,
       secondaryElevationFrequency: _secondaryElevationFrequency,
       tertiaryElevationFrequency: _tertiaryElevationFrequency,
@@ -72,9 +76,10 @@ class _MenuComponentState extends State<MenuComponent> {
       secondaryElevationWeight: _secondaryElevationWeight,
       tertiaryElevationWeight: _tertiaryElevationWeight,
       heightAmplitude: _heightAmplitude,
+      riverTrashold: _riverTrashold,
       seed: _seed,
     );
-    widget.onSettingsChanged(settings);
+    widget.onConfigChanged(config);
   }
 
   @override
@@ -112,7 +117,7 @@ class _MenuComponentState extends State<MenuComponent> {
                   onChanged: (value) {
                     setState(() {
                       _primaryElevationFrequency = value;
-                      _updateSettings();
+                      _updateConfig();
                     });
                   },
                 ),
@@ -124,7 +129,7 @@ class _MenuComponentState extends State<MenuComponent> {
                   onChanged: (value) {
                     setState(() {
                       _secondaryElevationFrequency = value;
-                      _updateSettings();
+                      _updateConfig();
                     });
                   },
                 ),
@@ -136,7 +141,7 @@ class _MenuComponentState extends State<MenuComponent> {
                   onChanged: (value) {
                     setState(() {
                       _tertiaryElevationFrequency = value;
-                      _updateSettings();
+                      _updateConfig();
                     });
                   },
                 ),
@@ -158,7 +163,7 @@ class _MenuComponentState extends State<MenuComponent> {
                   onChanged: (value) {
                     setState(() {
                       _primaryElevationWeight = value;
-                      _updateSettings();
+                      _updateConfig();
                     });
                   },
                 ),
@@ -171,7 +176,7 @@ class _MenuComponentState extends State<MenuComponent> {
                   onChanged: (value) {
                     setState(() {
                       _secondaryElevationWeight = value;
-                      _updateSettings();
+                      _updateConfig();
                     });
                   },
                 ),
@@ -184,7 +189,7 @@ class _MenuComponentState extends State<MenuComponent> {
                   onChanged: (value) {
                     setState(() {
                       _tertiaryElevationWeight = value;
-                      _updateSettings();
+                      _updateConfig();
                     });
                   },
                 ),
@@ -205,7 +210,29 @@ class _MenuComponentState extends State<MenuComponent> {
                   onChanged: (value) {
                     setState(() {
                       _heightAmplitude = value;
-                      _updateSettings();
+                      _updateConfig();
+                    });
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10), // Reduced from 20 for more condensed UI
+
+            // River Threshold Fieldset
+            _buildFieldset(
+              'River Formation',
+              [
+                _buildSlider(
+                  'Threshold',
+                  _riverTrashold,
+                  5.0,
+                  100.0,
+                  divisions: 19,
+                  onChanged: (value) {
+                    setState(() {
+                      _riverTrashold = value;
+                      _updateConfig();
                     });
                   },
                 ),
@@ -232,7 +259,7 @@ class _MenuComponentState extends State<MenuComponent> {
                         onChanged: (value) {
                           setState(() {
                             _seed = value;
-                            _updateSettings();
+                            _updateConfig();
                           });
                         },
                       ),
@@ -246,7 +273,7 @@ class _MenuComponentState extends State<MenuComponent> {
                         setState(() {
                           _seed = randomSeed;
                           _seedController.text = randomSeed;
-                          _updateSettings();
+                          _updateConfig();
                         });
                       },
                     ),
@@ -260,26 +287,28 @@ class _MenuComponentState extends State<MenuComponent> {
             // Reset to Default Button
             ElevatedButton(
               onPressed: () {
-                final defaultSettings = DemoSettings.defaultSettings();
+                final defaultConfig = SimplexBasedConfig.defaultConfig();
                 setState(() {
-                  _primaryElevationFrequency = defaultSettings.primaryElevationFrequency;
-                  _secondaryElevationFrequency = defaultSettings.secondaryElevationFrequency;
-                  _tertiaryElevationFrequency = defaultSettings.tertiaryElevationFrequency;
-                  _humidityFrequency = defaultSettings.humidityFrequency;
+                  _primaryElevationFrequency = defaultConfig.primaryElevationFrequency;
+                  _secondaryElevationFrequency = defaultConfig.secondaryElevationFrequency;
+                  _tertiaryElevationFrequency = defaultConfig.tertiaryElevationFrequency;
+                  _humidityFrequency = defaultConfig.humidityFrequency;
 
-                  _primaryElevationWeight = defaultSettings.primaryElevationWeight;
-                  _secondaryElevationWeight = defaultSettings.secondaryElevationWeight;
-                  _tertiaryElevationWeight = defaultSettings.tertiaryElevationWeight;
+                  _primaryElevationWeight = defaultConfig.primaryElevationWeight;
+                  _secondaryElevationWeight = defaultConfig.secondaryElevationWeight;
+                  _tertiaryElevationWeight = defaultConfig.tertiaryElevationWeight;
 
-                  _heightAmplitude = defaultSettings.heightAmplitude;
+                  _heightAmplitude = defaultConfig.heightAmplitude;
 
-                  _seed = defaultSettings.seed;
+                  _riverTrashold = defaultConfig.riverTrashold;
+
+                  _seed = defaultConfig.seed;
                   _seedController.text = _seed;
 
-                  _updateSettings();
+                  _updateConfig();
                 });
               },
-              child: const Text('Reset to Default Settings'),
+              child: const Text('Reset to Default Config'),
             ),
           ],
         ),
