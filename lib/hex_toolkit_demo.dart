@@ -140,7 +140,7 @@ class _HexToolkitDemoState extends State<HexToolkitDemo> {
                 child: Stack(
               children: [
                 // Main content spanning full width
-                Expanded(
+                Positioned.fill(
                   child: WorldViewer(
                     config: _worldConfig,
                     world: _world,

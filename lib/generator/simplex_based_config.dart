@@ -51,6 +51,29 @@ class SimplexBasedConfig implements WorldGeneratorConfig {
   /// Threshold value for river formation based on accumulated humidity.
   final double riverTrashold;
 
+  /// Cubic bezier easing parameters as a comma-separated string (p1x,p1y,p2x,p2y)
+  final String cubicBezierEasing;
+
+  /// Parses the cubicBezierEasing string and returns a CubicBezierEasing object
+  CubicBezierEasing get bezierEasing {
+    final parts = cubicBezierEasing.split(',');
+    if (parts.length != 4) {
+      // Default values if parsing fails
+      return CubicBezierEasing(.39, .68, .31, .27);
+    }
+
+    try {
+      final p1x = double.parse(parts[0].trim());
+      final p1y = double.parse(parts[1].trim());
+      final p2x = double.parse(parts[2].trim());
+      final p2y = double.parse(parts[3].trim());
+      return CubicBezierEasing(p1x, p1y, p2x, p2y);
+    } catch (e) {
+      // Default values if parsing fails
+      return CubicBezierEasing(.39, .68, .31, .27);
+    }
+  }
+
   late SimplexBasedProviders _providers;
 
   /// Creates a new settings instance with the specified parameters.
@@ -69,6 +92,7 @@ class SimplexBasedConfig implements WorldGeneratorConfig {
     this.seed = "terra-incognita",
     this.size = 250,
     this.riverTrashold = 20,
+    this.cubicBezierEasing = "0.39,0.68,0.31,0.27",
   }) {
     _providers = SimplexBasedProviders(this);
   }
@@ -102,6 +126,6 @@ class SimplexBasedConfig implements WorldGeneratorConfig {
   ///
   /// Useful for debugging and logging.
   String toString() {
-    return 'SimplexBasedConfig{primaryElevationFrequency: $primaryElevationFrequency, secondaryElevationFrequency: $secondaryElevationFrequency, tertiaryElevationFrequency: $tertiaryElevationFrequency, humidityFrequency: $humidityFrequency, primaryElevationWeight: $primaryElevationWeight, secondaryElevationWeight: $secondaryElevationWeight, tertiaryElevationWeight: $tertiaryElevationWeight, heightAmplitude: $heightAmplitude}';
+    return 'SimplexBasedConfig{primaryElevationFrequency: $primaryElevationFrequency, secondaryElevationFrequency: $secondaryElevationFrequency, tertiaryElevationFrequency: $tertiaryElevationFrequency, humidityFrequency: $humidityFrequency, primaryElevationWeight: $primaryElevationWeight, secondaryElevationWeight: $secondaryElevationWeight, tertiaryElevationWeight: $tertiaryElevationWeight, heightAmplitude: $heightAmplitude, cubicBezierEasing: $cubicBezierEasing}';
   }
 }

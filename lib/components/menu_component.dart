@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:hex_toolkit_demo/generator/world.dart';
+import 'package:hex_toolkit_demo/utils/cubic_bezier_easing.dart';
 
 import '../utils/seed_generator.dart';
 
@@ -37,6 +38,9 @@ class _MenuComponentState extends State<MenuComponent> {
   late String _seed; // Seed for noise generators
   final TextEditingController _seedController = TextEditingController();
 
+  late String _cubicBezierEasing; // Cubic bezier easing parameters
+  final TextEditingController _cubicBezierEasingController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -57,11 +61,15 @@ class _MenuComponentState extends State<MenuComponent> {
 
     _seed = defaultConfig.seed;
     _seedController.text = _seed;
+
+    _cubicBezierEasing = defaultConfig.cubicBezierEasing;
+    _cubicBezierEasingController.text = _cubicBezierEasing;
   }
 
   @override
   void dispose() {
     _seedController.dispose();
+    _cubicBezierEasingController.dispose();
     super.dispose();
   }
 
@@ -78,6 +86,7 @@ class _MenuComponentState extends State<MenuComponent> {
       heightAmplitude: _heightAmplitude,
       riverTrashold: _riverTrashold,
       seed: _seed,
+      cubicBezierEasing: _cubicBezierEasing,
     );
     widget.onConfigChanged(config);
   }
@@ -198,6 +207,40 @@ class _MenuComponentState extends State<MenuComponent> {
 
             const SizedBox(height: 10), // Reduced from 20 for more condensed UI
 
+            // Cubic Bezier Easing Fieldset
+            _buildFieldset(
+              'Cubic Bezier Easing',
+              [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Enter 4 comma-separated values (p1x,p1y,p2x,p2y)',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    const SizedBox(height: 4),
+                    TextField(
+                      controller: _cubicBezierEasingController,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        border: OutlineInputBorder(),
+                        hintText: 'e.g., 0.42,0.0,0.58,1.0',
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _cubicBezierEasing = value;
+                          _updateConfig();
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10), // Reduced from 20 for more condensed UI
+
             // Height Amplitude Fieldset
             _buildFieldset(
               'Height Amplitude',
@@ -304,6 +347,9 @@ class _MenuComponentState extends State<MenuComponent> {
 
                   _seed = defaultConfig.seed;
                   _seedController.text = _seed;
+
+                  _cubicBezierEasing = defaultConfig.cubicBezierEasing;
+                  _cubicBezierEasingController.text = _cubicBezierEasing;
 
                   _updateConfig();
                 });

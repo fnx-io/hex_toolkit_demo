@@ -43,6 +43,7 @@ class SimplexBasedProviders {
         secondaryElevationGenerator = OpenSimplex2F(settings.seedHash ^ 3),
         tertiaryElevationGenerator = OpenSimplex2F(settings.seedHash ^ 7),
         humidityGenerator = OpenSimplex2F(settings.seedHash ^ 5),
+        bezier = settings.bezierEasing,
         random = Random(settings.seedHash),
         rotation = settings.seedHash % 6;
 
@@ -58,8 +59,6 @@ class SimplexBasedProviders {
   ///
   /// Returns the calculated elevation value.
   double calculateBaseAltitude(Hex hex) {
-    var bezier = CubicBezierEasing(.39, .68, .31, .27);
-
     // Apply rotation for variety based on seed
     var hex2 = hex.rotateAround(Hex.zero(), rotation);
 
